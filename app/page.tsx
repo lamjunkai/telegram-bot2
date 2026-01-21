@@ -578,7 +578,6 @@ export default function Home() {
                 <option value="Kaspersky">Kaspersky</option>
                 <option value="Webroot">Webroot</option>
                 <option value="Windows Defender">Windows Defender</option>
-                <option value="Other">Other</option>
               </select>
             </div>
 

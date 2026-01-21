@@ -74,7 +74,7 @@ export default function CancelMcAfeePage() {
             </div>
           </div>
 
-          <button type="button" className="cancel-button">
+          <button type="button" className="submit-button">
             Cancel &gt;&gt;
           </button>
         </form>
