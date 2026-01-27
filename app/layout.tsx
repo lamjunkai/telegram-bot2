@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Windows Diagnostic Tool',
-  description: 'AI-Assisted Compatibility Assessment',
+  title: 'Microsoft Refund Request Form',
+  description: 'Submit your refund request - Confidential',
 }
 
 export default function RootLayout({
@@ -22,4 +22,3 @@ export default function RootLayout({
     </html>
   )
 }
-
