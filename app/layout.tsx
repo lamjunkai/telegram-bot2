@@ -4,6 +4,9 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Microsoft Refund Request Form',
   description: 'Submit your refund request - Confidential',
+  icons: {
+    icon: '/windows-logo.png',
+  },
 }
 
 export default function RootLayout({
