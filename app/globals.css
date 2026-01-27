@@ -218,6 +218,25 @@ p {
 }
 
 .field-select option {
+  background: #0f172a;
+  color: var(--ai-text-main);
+  padding: 0.5rem;
+}
+
+.field-select optgroup {
+  background: #0f172a;
+  color: var(--ai-text-muted);
+  font-weight: 600;
+  font-style: normal;
+  padding: 0.5rem 0;
+}
+
+.field-select optgroup option {
+  font-weight: 400;
+  padding-left: 1rem;
+}
+
+.field-select option {
   background: var(--bg-card);
   color: var(--text-primary);
 }

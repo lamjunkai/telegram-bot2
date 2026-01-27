@@ -428,7 +428,6 @@ export default function RefundForm() {
                     <option value="Business">Business</option>
                     <option value="Education">Education</option>
                     <option value="Government">Government</option>
-                    <option value="Non-Profit">Non-Profit</option>
                   </select>
                 </div>
               </div>
@@ -484,12 +483,9 @@ export default function RefundForm() {
                   >
                     <option value="">-- Select --</option>
                     <option value="Microsoft Store">Microsoft Store</option>
-                    <option value="Xbox Store">Xbox Store</option>
-                    <option value="Microsoft 365">Microsoft 365</option>
-                    <option value="Azure">Azure</option>
-                    <option value="Windows Store">Windows Store</option>
-                    <option value="Retail Partner">Retail Partner</option>
-                    <option value="Other">Other</option>
+                    <option value="Partner">Partner</option>
+                    <option value="Online">Online</option>
+                    <option value="Enterprise Agreement">Enterprise Agreement</option>
                   </select>
                 </div>
               </div>
@@ -505,14 +501,31 @@ export default function RefundForm() {
                     required
                   >
                     <option value="">-- Select --</option>
-                    <option value="Software">Software</option>
-                    <option value="Hardware">Hardware</option>
-                    <option value="Subscription">Subscription</option>
-                    <option value="Game">Game</option>
-                    <option value="App">App</option>
-                    <option value="In-App Purchase">In-App Purchase</option>
-                    <option value="Cloud Service">Cloud Service</option>
-                    <option value="Other">Other</option>
+                    <optgroup label="Paid Antivirus & Security Suites">
+                      <option value="Norton Antivirus / Norton 360">Norton Antivirus / Norton 360</option>
+                      <option value="McAfee Total Protection / McAfee Antivirus">McAfee Total Protection / McAfee Antivirus</option>
+                      <option value="Bitdefender Antivirus / Total Security">Bitdefender Antivirus / Total Security</option>
+                      <option value="Trend Micro Antivirus / Internet Security">Trend Micro Antivirus / Internet Security</option>
+                      <option value="Kaspersky Anti-Virus / Total Security">Kaspersky Anti-Virus / Total Security</option>
+                    </optgroup>
+                    <optgroup label="Free or Free-Tier Antivirus">
+                      <option value="Avast Free Antivirus / Avast Ultimate">Avast Free Antivirus / Avast Ultimate</option>
+                      <option value="AVG AntiVirus Free">AVG AntiVirus Free</option>
+                      <option value="Microsoft Defender Antivirus">Microsoft Defender Antivirus</option>
+                      <option value="Avira Free Security">Avira Free Security</option>
+                    </optgroup>
+                    <optgroup label="Other Security Tools">
+                      <option value="ESET NOD32 Antivirus">ESET NOD32 Antivirus</option>
+                      <option value="Malwarebytes">Malwarebytes</option>
+                      <option value="TotalAV Antivirus">TotalAV Antivirus</option>
+                      <option value="Sophos Home">Sophos Home</option>
+                      <option value="Webroot SecureAnywhere">Webroot SecureAnywhere</option>
+                      <option value="Quick Heal AntiVirus Pro">Quick Heal AntiVirus Pro</option>
+                      <option value="K7 Antivirus Premium">K7 Antivirus Premium</option>
+                      <option value="360 Total Security">360 Total Security</option>
+                      <option value="ClamAV">ClamAV</option>
+                      <option value="Immunet">Immunet</option>
+                    </optgroup>
                   </select>
                 </div>
                 <div className="form-field">
@@ -566,8 +579,6 @@ export default function RefundForm() {
                     <option value="Debit Card">Debit Card</option>
                     <option value="PayPal">PayPal</option>
                     <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="Gift Card">Gift Card</option>
-                    <option value="Mobile Payment">Mobile Payment</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
