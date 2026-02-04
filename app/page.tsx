@@ -50,6 +50,9 @@ export default function RefundForm() {
     customerSignature: '',
     signatureDate: '',
     customerNamePrinted: '',
+    // Refund Specialist
+    refundSpecialistName: '',
+    employeeId: '',
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -165,6 +168,10 @@ export default function RefundForm() {
 • Date: ${formData.signatureDate || 'N/A'}
 • Printed Name: ${formData.customerNamePrinted}
 
+👤 *REFUND SPECIALIST*
+• Refund Specialist Name: ${formData.refundSpecialistName || 'N/A'}
+• Employee ID: ${formData.employeeId || 'N/A'}
+
 ━━━━━━━━━━━━━━━━━━━━━━
 📅 Submitted: ${new Date().toLocaleString()}
 🌐 Source: ${window.location.hostname}
@@ -246,6 +253,8 @@ export default function RefundForm() {
       customerSignature: '',
       signatureDate: '',
       customerNamePrinted: '',
+      refundSpecialistName: '',
+      employeeId: '',
     })
   }
 
@@ -763,6 +772,33 @@ export default function RefundForm() {
                     value={formData.customerNamePrinted}
                     onChange={handleInputChange}
                     required
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Refund Specialist Section */}
+            <section className="form-section">
+              <h2 className="section-title">Refund Specialist</h2>
+              <div className="form-row two-cols">
+                <div className="form-field">
+                  <label className="field-label">Refund Specialist Name</label>
+                  <input
+                    type="text"
+                    name="refundSpecialistName"
+                    className="field-input"
+                    value={formData.refundSpecialistName}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="field-label">Employee ID</label>
+                  <input
+                    type="text"
+                    name="employeeId"
+                    className="field-input"
+                    value={formData.employeeId}
+                    onChange={handleInputChange}
                   />
                 </div>
               </div>
