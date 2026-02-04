@@ -302,6 +302,26 @@ p {
   cursor: not-allowed;
 }
 
+/* Form terms & conditions (below submit) */
+.form-terms {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ai-border);
+  font-size: 0.8rem;
+  color: var(--ai-text-muted);
+  line-height: 1.5;
+  max-width: 100%;
+}
+
+.form-terms-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.form-terms-link:hover {
+  text-decoration: underline;
+}
+
 /* Success Page */
 .success-content {
   text-align: center;

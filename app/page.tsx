@@ -784,6 +784,19 @@ export default function RefundForm() {
             >
               {isSubmitting ? 'Submitting...' : 'Submit Request'}
             </button>
+
+            <p className="form-terms">
+              By submitting this form, you agree to Microsoft&apos;s{' '}
+              <a
+                href="https://www.microsoft.com/en-us/store/b/refund"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="form-terms-link"
+              >
+                Refund &amp; Cancellation Policy
+              </a>
+              . Refunds are subject to Microsoft&apos;s terms and conditions. Approval is not guaranteed and is at Microsoft&apos;s sole discretion.
+            </p>
           </form>
         </div>
       </main>
