@@ -304,22 +304,16 @@ p {
 
 /* Form terms & conditions (below submit) */
 .form-terms {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
+  margin-top: 1.75rem;
+  padding: 1rem 1.25rem;
   border-top: 1px solid var(--ai-border);
-  font-size: 0.8rem;
+  background: var(--bg-secondary);
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
   color: var(--ai-text-muted);
-  line-height: 1.5;
+  line-height: 1.6;
   max-width: 100%;
-}
-
-.form-terms-link {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.form-terms-link:hover {
-  text-decoration: underline;
+  text-align: center;
 }
 
 /* Success Page */
